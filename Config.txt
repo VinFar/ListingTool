@@ -1,0 +1,42 @@
+#Konfigurationsdatei für die Eingabemaske
+#Kommentare können mit '#' eingefügt werden. Diese Zeilen werden ignoriert
+#Mit '[Kategorie]' (eckige Klammern) können neue Kategorien angelegt werden.
+#Diese erzeugen in der Maske einen neuen Tab und jeweils eine neue Datei mit dem jeweiligen Namen
+#Darunter können in jeder neuen Zeile eine neue Eigenschaft der Kategorie eingefügt werden.
+#Hierbei ist wichtig dass hinter jeden Eigenschaft ein '=' steht.
+#Es können beliebig viele Eigenschaften zu jeder Kategorie hinterlegt werden
+#Jede Eigenschaft erzeugt eine neue Spalte in der Exel Tabelle
+#WICHTIG: Die Excel Datei wird mit ';' Spaltengetrennt.
+#Es ist eventuell nötig in den Excel Optionen die Spaltentrenner von ',' auf ';' umzustellen.
+
+#Setup: Python 3.9 installieren
+#Rechner Neu starten
+#In den Ordner navigieren wo die Dateien liegen
+#Oben in die Navigationsleiste klicken und cmd eingeben, dann Enter
+#pip install -r requirements.txt
+#warten und dann über python ListingTool.py das Skript starte
+
+#Es muss in jeder Kategorie die Eigenschaft 'SKU' vorhanden sein. Das ist die Artikelnummer
+#Hier wird bei jedem Speichervorgang überpüft ob diese SKU schon einmal verwendet wurde.
+#Wenn dem so ist, erscheint ein PopUp
+
+#Hier kann ein Prefix für jede erzeugte Datei hinterlegt werden(FileName).
+#Hinter den Prefix wird dann das Datum und die Uhrzeit eingefügt
+#Mit 'rootDir' kann das Verzeichnis für die Dateien eingestellt werden.
+[General]
+FileName=RapidSales_
+rootDir=C:\Users\User\Documents\GitHub\ListingTool
+SkuFileDir=C:\Users\User\Documents\GitHub\ListingTool
+WindowTitle=Title
+
+[Games]
+LAGERPLATZ-BILBEE=
+KATEGORIE-BILBEE=
+Action={Add}
+SKU=
+Zustand={6000,5000,4000,2750,1000}
+Beschreibung=
+
+
+
+
