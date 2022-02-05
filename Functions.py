@@ -5,6 +5,7 @@ import os.path
 import csv
 import sys
 import configparser
+import fnmatch
 
 def ConfigParserCreate(ConfigFile):
     ConfigParser = configparser.RawConfigParser()
@@ -14,6 +15,26 @@ def ConfigParserCreate(ConfigFile):
     
 def ButtonCloseCallback():
     sys.exit()
+    
+def ConfigParserIsDropDown(ConfigElement:str):
+    return fnmatch.fnmatch(ConfigElement,"{*}")
+
+def ConfigParserGetElementsOfDropDown(DropDownElement:str):
+    return DropDownElement[1:-1].split(',')
+
+def GuiAddLabel(Zeile:int,Spalte:int,Frame:ttk.Frame,Text:str):
+    TextLabelCurrent = ttk.Label(Frame,text=Text)
+    TextLabelCurrent.grid(column=Spalte,row=Zeile)
+    
+def GuiAddDropDown(Zeile:int,Spalte:int,Frame:ttk.Frame,DropDownContent:list[str]):
+    variable = tkinter.StringVar(Frame)
+    variable.set(DropDownContent[0])
+    TmpEntry = ttk.OptionMenu(Frame,variable,*DropDownContent)
+    TmpEntry.grid(row=Zeile,column=Spalte, padx='5', pady='5', sticky='ew')
+    
+def GuiAddTextInput(Zeile:int,Spalte:int,Frame:ttk.Frame,DefaultText:str):
+    TmpEntry = ttk.Entry(master=Frame)
+    TmpEntry.grid(row=Zeile,column=Spalte, padx='5', pady='5', sticky='ew')
     
 def ButtonIngoreError(win):
     global IgnoreSkuError
@@ -99,3 +120,54 @@ def CreateCsvWithHeader(FilePath,Header):
         if exists==False:
             CsvWriter.writerow(Header)
     return
+
+class ScrollbarFrame(tk.Frame):
+    """
+    Extends class tk.Frame to support a scrollable Frame 
+    This class is independent from the widgets to be scrolled and 
+    can be used to replace a standard tk.Frame
+    """
+    def __init__(self, parent, **kwargs):
+        tk.Frame.__init__(self, parent, **kwargs)
+        
+        # The Scrollbar, layout to the right
+        vsb = tk.Scrollbar(self, orient="vertical")
+        vsb.pack(side="right", fill="y")
+
+        # The Canvas which supports the Scrollbar Interface, layout to the left
+        self.canvas = tk.Canvas(self, borderwidth=0)
+        self.canvas.pack(side="left", fill="both", expand=True)
+
+        # Bind the Scrollbar to the self.canvas Scrollbar Interface
+        self.canvas.configure(yscrollcommand=vsb.set)
+        vsb.configure(command=self.canvas.yview)
+
+        # The Frame to be scrolled, layout into the canvas
+        # All widgets to be scrolled have to use this Frame as parent
+        self.scrolled_frame = tk.Frame(self.canvas, background=self.canvas.cget('bg'))
+        self.canvas.create_window((4, 4), window=self.scrolled_frame, anchor="nw")
+
+        # Configures the scrollregion of the Canvas dynamically
+        self.scrolled_frame.bind("<Configure>", self._configure_window)
+        self.scrolled_frame.bind('<Enter>', self._bound_to_mousewheel)
+        self.scrolled_frame.bind('<Leave>', self._unbound_to_mousewheel)
+
+    def _bound_to_mousewheel(self, event):
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)   
+
+    def _unbound_to_mousewheel(self, event):
+        self.canvas.unbind_all("<MouseWheel>") 
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")  
+
+    def _configure_window(self, event):
+        # update the scrollbars to match the size of the inner frame
+        size = (self.scrolled_frame.winfo_reqwidth(), self.scrolled_frame.winfo_reqheight())
+        self.canvas.config(scrollregion='0 0 %s %s' % size)
+        if self.scrolled_frame.winfo_reqwidth() != self.canvas.winfo_width():
+            # update the canvasas's width to fit the inner frame
+            self.canvas.config(width = self.scrolled_frame.winfo_reqwidth())
+        if self.scrolled_frame.winfo_reqheight() != self.canvas.winfo_height():
+            # update the canvasas's width to fit the inner frame
+            self.canvas.config(height = self.scrolled_frame.winfo_reqheight())
