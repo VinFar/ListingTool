@@ -7,6 +7,8 @@ import sys
 import configparser
 import fnmatch
 
+IgnoreSkuError=True
+
 def ConfigParserCreate(ConfigFile):
     ConfigParser = configparser.RawConfigParser()
     ConfigParser.optionxform=str
@@ -14,6 +16,7 @@ def ConfigParserCreate(ConfigFile):
     return ConfigParser
     
 def ButtonCloseCallback():
+    print("Button Close Callback")
     sys.exit()
     
 def ConfigParserIsDropDown(ConfigElement:str):
@@ -27,14 +30,17 @@ def GuiAddLabel(Zeile:int,Spalte:int,Frame:ttk.Frame,Text:str):
     TextLabelCurrent.grid(column=Spalte,row=Zeile)
     
 def GuiAddDropDown(Zeile:int,Spalte:int,Frame:ttk.Frame,DropDownContent:list[str]):
-    variable = tkinter.StringVar(Frame)
-    variable.set(DropDownContent[0])
-    TmpEntry = ttk.OptionMenu(Frame,variable,*DropDownContent)
+    StrVar = tkinter.StringVar(Frame)
+    StrVar.set(DropDownContent[0])
+    TmpEntry = ttk.OptionMenu(Frame,StrVar,*DropDownContent)
     TmpEntry.grid(row=Zeile,column=Spalte, padx='5', pady='5', sticky='ew')
+    return StrVar
     
 def GuiAddTextInput(Zeile:int,Spalte:int,Frame:ttk.Frame,DefaultText:str):
-    TmpEntry = ttk.Entry(master=Frame)
+    StrVar = tk.StringVar()
+    TmpEntry = ttk.Entry(master=Frame,textvariable=StrVar)
     TmpEntry.grid(row=Zeile,column=Spalte, padx='5', pady='5', sticky='ew')
+    return StrVar
     
 def ButtonIngoreError(win):
     global IgnoreSkuError
@@ -66,45 +72,28 @@ def WriteItemToFile(FilePath,Items):
         CsvWriter = csv.writer(f,delimiter=";")
         CsvWriter.writerow(Items)
         
-def WriteSkuToFile(SkuFromGUI):
-    FilePathSku=os.path.join(SkuFileDir,FileNameSku)
-       
-    with open(FilePathSku,'a+',newline="") as f:
-        CsvWriter = csv.writer(f,delimiter=";")
-        CsvWriter.writerow([SkuFromGUI])
-        
-def ButtonSaveCallback(FilePath,Section:list[tk.Entry],SkuIdx):
-    EmptyGUI = all(v.get()=='' for v in Section)
-    FoundSku = False
-    if not EmptyGUI:
-        ItemList = [k.get() for k in Section]
-        SkuFromGUI = Section[SkuIdx].get()
-        FilePathSku=os.path.join(SkuFileDir,FileNameSku)
-        with open(FilePathSku,'r',newline="") as f:
+def CheckSkuWithFile(FullSkuPath,SkuFromGUI):
+    if SkuFromGUI != '':
+        with open(FullSkuPath,'r',newline="") as f:
             CsvReader = csv.reader(f,delimiter=';')
             for line in CsvReader:
-                if line[0] == SkuFromGUI:
-                    FoundSku = True
-                    print("Found SKU")
-                    break
-        for ThisEntry in Section:
-            if type(ThisEntry) == tkinter.StringVar:
-                pass
-            else:
-                ThisEntry.delete(0,tk.END)
-        if FoundSku:
-            PopUpSkuFound(SkuFromGUI)
-            if not IgnoreSkuError:
-                return
-            
-        WriteItemToFile(FilePath,ItemList)
-        WriteSkuToFile(SkuFromGUI)
-        
-        print("Wrote Data to " + FilePath)
-    else:
-        print("Empty GUI. Did not write anything to File")
-            
-                
+                if line[0] != '':
+                    if line[0] == SkuFromGUI:
+                        FoundSku = True
+                        global IgnoreSkuError
+                        IgnoreSkuError= True
+                        PopUpSkuFound(SkuFromGUI)
+                        if IgnoreSkuError:
+                            return True
+                        else:
+                            return False
+    return True
+                    
+def WriteSkuToFile(FullSkuPath,SkuFromGUI):
+    if SkuFromGUI != '':
+        with open(FullSkuPath,'a+',newline="") as f:
+            CsvWriter = csv.writer(f,delimiter=';')
+            CsvWriter.writerow([SkuFromGUI])
 
 def CreateCsvWithHeader(FilePath,Header):
     exists = False
